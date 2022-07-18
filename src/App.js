@@ -1,13 +1,9 @@
 import { useState, useEffect } from "react";
-import {
-  Routes,
-  Route,
-  useLocation,
-  useNavigate
-} from "react-router-dom";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 import BlogsPage from "./Pages/BlogsPage";
 import PostBlogPage from "./Pages/PostBlogPage";
+import BlogManager from "./Pages/BlogManager";
 
 const urlEndpoint = "http://localhost:4000";
 
@@ -20,7 +16,8 @@ function App() {
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
   const [blogsLoading, setBlogsLoading] = useState(false);
-
+  const [adminBlogList, setAdminBlogList] = useState([]);
+  const [adminBlogsLoading, setAdminBlogsLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,20 +28,55 @@ function App() {
       return;
     };
     fetchData();
-  }, [sortField, sortOrder, filterField, filterValue, limit, page, blogsLoading]);
+  }, [
+    sortField,
+    sortOrder,
+    filterField,
+    filterValue,
+    limit,
+    page,
+    blogsLoading,
+  ]);
+
+  useEffect(() => {
+    const fetchAdminBlogList = async () => {
+      const apiResponse = await fetch(`${urlEndpoint}/admin/blog-list`);
+      const json = await apiResponse.json();
+      setAdminBlogList(json.message);
+      return json;
+    };
+    fetchAdminBlogList();
+  }, [adminBlogsLoading]);
 
   const blogSubmit = async (blog) => {
-    setBlogsLoading(true)
-    const url = `${urlEndpoint}/blogs/blog-submit`
+    setBlogsLoading(true);
+    const url = `${urlEndpoint}/blogs/blog-submit`;
     const response = await fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(blog) 
+      body: JSON.stringify(blog),
     });
     const responseJSON = await response.json();
-    setBlogsLoading(false)
+    setBlogsLoading(false);
+  };
+
+  const deleteBlog = async (blogId) => {
+    setAdminBlogsLoading(true);
+    const url = `${urlEndpoint}/admin/delete-blog/${blogId}`;
+    const response = await fetch(url, {
+      method: "DELETE",
+    });
+    const responseJSON = await response.json();
+    setAdminBlogsLoading(false);
+  };
+
+  const fetchSingleBlog = async (blogId) => {
+    const url = `${urlEndpoint}/blogs/single-blog/${blogId}`
+    const response = await fetch(url);
+    const responseJSON = await response.json();
+    return responseJSON
   }
 
   return (
@@ -73,13 +105,8 @@ function App() {
           />
           <Route
             path="/post-blog"
-            element={
-              <PostBlogPage
-                blogSubmit={blogSubmit}
-              />
-            }
+            element={<PostBlogPage blogSubmit={blogSubmit} />}
           />
-          {/* 
           <Route
             path="/blog-manager"
             element={
@@ -88,9 +115,10 @@ function App() {
                 deleteBlog={deleteBlog}
                 fetchSingleBlog={fetchSingleBlog}
                 urlEndpoint={urlEndpoint}
+                setAdminBlogsLoading={setAdminBlogsLoading}
               />
             }
-          /> */}
+          />
         </Routes>
       </header>
     </div>

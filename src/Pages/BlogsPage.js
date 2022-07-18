@@ -82,12 +82,12 @@ const BlogsPage = (props) => {
           setPage(Number(value));
         }}
       />
-      <p>
+      <div>
         <h3>Blogs</h3>
         {message && message.map((blog, idx) => {
           return <div key={idx}>{blog.title}</div>;
         })}
-      </p>
+      </div>
     </div>
   );
 };
